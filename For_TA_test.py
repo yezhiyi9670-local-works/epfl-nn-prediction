@@ -48,7 +48,7 @@ class dataset():
             return x, y
 
         except Exception as e:
-            print(f"An error occurred while loading data: {e}")  
+            assert False, f"An error occurred while loading data: {e}"  # Ensures correct return type
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='The test process')
