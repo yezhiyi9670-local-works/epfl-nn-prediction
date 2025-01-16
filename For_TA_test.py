@@ -1,6 +1,11 @@
 import numpy as np
 import os
 import argparse
+import pickle
+import numpy
+
+from MyNeuralNetwork import MyNeuralNetwork
+
 class Your_model_name():
     def __init__(self) -> None:
         pass
@@ -55,12 +60,16 @@ if __name__ == '__main__':
     # TA provdie the test data_path
     parser.add_argument('--data_path', default='', type=str)
     # you provide the model_path in default
-    parser.add_argument('--model_path', default='your relative model path', type=str)
+    parser.add_argument('--model_path', default='model/model.pickle', type=str)
     args = parser.parse_args()
     data = dataset(args.data_path)
+    
     test_x, test_y = data.data_collection()
+    test_x = test_x.transpose()
+    test_y = test_y.reshape(1, -1)
     print(f'the test features of the circuits are: {test_x} with shape of {test_x.shape}')
     print(f'the test labels of the circuits are: {test_y} with shape of {test_y.shape}')
+
     # your implementation
     '''
         The TA only provide the test_data_path, and you have to supplement the code.
@@ -75,4 +84,21 @@ if __name__ == '__main__':
         
         The grade will depend on you model's f1_score
     '''
+    
+    nn = MyNeuralNetwork()
+    nn.load_params(pickle.load(open(args.model_path, 'rb')))
+    pred = (nn.predict(test_x) >= 0.5) + 0
 
+    gt0_pred1 = numpy.sum(numpy.logical_and(pred == 1, test_y == 0))
+    gt1_pred0 = numpy.sum(numpy.logical_and(pred == 0, test_y == 1))
+    gt1_pred1 = numpy.sum(numpy.logical_and(pred == 1, test_y == 1))
+
+    precision = gt1_pred1 / (gt1_pred1 + gt0_pred1) if (gt1_pred1 + gt0_pred1 > 0) else numpy.nan
+    recall = gt1_pred1 / (gt1_pred1 + gt1_pred0) if (gt1_pred1 + gt1_pred0 > 0) else numpy.nan
+    
+    f1 = 0
+    if precision > 0 and recall > 0:
+        f1 = 1 / ((1 / precision + 1 / recall) / 2)
+    
+    print(f'the performance of the model is recall: {"%.4f" % recall}, precision: {"%.4f" % precision}, f1_score: {"%.4f" % f1}')
+    

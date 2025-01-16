@@ -2,24 +2,36 @@ import numpy
 import nn_modules
 import random
 
-# [TODO] Implement regularization
 class MyNeuralNetwork():
     def __init__(self):
         self.modules: list[nn_modules.Base] = [
-            nn_modules.BiasedLinear(20, 20),
-            nn_modules.ReLU(),
-            nn_modules.BiasedLinear(20, 10),
-            nn_modules.ReLU(),
-            nn_modules.BiasedLinear(10, 1),
+            nn_modules.BiasedLinear(69, 32),
+            nn_modules.LeakyReLU(0.01),
+            nn_modules.BiasedLinear(32, 16),
+            nn_modules.LeakyReLU(0.01),
+            nn_modules.BiasedLinear(16, 8),
+            nn_modules.LeakyReLU(0.01),
+            nn_modules.BiasedLinear(8, 1),
             nn_modules.Sigmoid()
         ]
-        self.loss_head = nn_modules.BinaryFocalLoss(0.25, 2)
+        self.loss_head = nn_modules.BinaryFocalLoss(0.95, 3)
+        self.regularization_factor = 1e-5  # Adjusted: 1e-5 results in much overfitting, while 5e-5 prevents training
     
     def dump_params(self):
         return [
             module.dump_params()
             for module in self.modules
         ]
+    
+    def load_params(self, data):
+        for i in range(len(self.modules)):
+            self.modules[i].load_params(data[i])
+            
+    def loss(self, estY: numpy.ndarray, gtY: numpy.ndarray):
+        l2 = 0
+        for module in self.modules:
+            l2 += module.l2normsq(self.regularization_factor)
+        return l2 + self.loss_head.loss(estY, gtY)
 
     def train(self, X: numpy.ndarray, Y: numpy.ndarray, lr: float, epoch: int):
         '''
@@ -51,7 +63,7 @@ class MyNeuralNetwork():
         for i in range(len(self.modules) - 1, -1, -1):
             module = self.modules[i]
             next_grad = module.backward(curr_grad, intermediary[i], intermediary[i + 1])
-            module.update(curr_grad, intermediary[i], intermediary[i + 1], lr)
+            module.update(curr_grad, intermediary[i], intermediary[i + 1], lr, self.regularization_factor)
             curr_grad = next_grad
             # trace += f'=== Grad {i}\n{repr(curr_grad)}\n'
         
@@ -65,7 +77,7 @@ class MyNeuralNetwork():
             X = module.forward(X)
         return X
     
-    def eval(self, X: numpy.ndarray, Y: numpy.ndarray, lr: float):
+    def eval(self, X: numpy.ndarray, Y: numpy.ndarray):
         estY = self.__passthru(X)
         return self.loss_head.loss(estY, Y)
 

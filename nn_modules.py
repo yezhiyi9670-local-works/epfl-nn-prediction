@@ -30,12 +30,18 @@ class Base(metaclass=ABCMeta):
         '''
         pass
     
-    def update(self, ddY: numpy.ndarray, X: numpy.ndarray, Y: numpy.ndarray, lr: float):
+    def update(self, ddY: numpy.ndarray, X: numpy.ndarray, Y: numpy.ndarray, lr: float, reg_factor: float = 0):
         '''
         Given the original input and the gradient with respect to the output tensor, \\
         update the params of the current module with Gradient Descent
         '''
         pass
+    
+    def l2normsq(self, reg_factor: float) -> float:
+        '''
+        Calculate L-2 norm of the params. For regularization.
+        '''
+        return 0
 
 class ReLU(Base):
     def forward(self, X) -> numpy.ndarray:
@@ -52,9 +58,10 @@ class LeakyReLU(Base):
         return ddY * (X >= 0) + ddY * self.slope * (X < 0)
 
 class BiasedLinear(Base):
-    def __init__(self, in_dims: int, out_dims: int):
-        self.weight = numpy.random.normal(0, 0.01, (out_dims, in_dims))
+    def __init__(self, in_dims: int, out_dims: int, biased: bool = True):
+        self.weight = numpy.random.normal(0, 1 / in_dims, (out_dims, in_dims))
         self.bias = numpy.zeros((out_dims, 1))
+        self.biased = biased
     def dump_params(self):
         return [ self.weight, self.bias ]
     def load_params(self, data: Any):
@@ -63,11 +70,15 @@ class BiasedLinear(Base):
         return self.weight @ X + self.bias
     def backward(self, ddY, X, Y):
         return self.weight.transpose() @ ddY
-    def update(self, ddY, X, Y, lr):
-        self.bias -= numpy.sum(ddY, axis=1, keepdims=True) * lr  # Sum the gradient from all data samples
+    def update(self, ddY, X, Y, lr, reg_factor = 0):
+        ddB = numpy.sum(ddY, axis=1, keepdims=True)
         ddW = ddY @ X.transpose()
-        self.weight -= ddW * lr
+        self.bias -= self.bias * lr * 2 * reg_factor + ddB * lr
+        self.weight -= self.weight * lr * 2 * reg_factor + ddW * lr
+    def l2normsq(self, reg_factor = 0):
+        return reg_factor * (numpy.sum(self.bias ** 2) + numpy.sum(self.weight ** 2))
 
+# [TODO] Make this numerically safe
 class Sigmoid(Base):
     def forward(self, X) -> numpy.ndarray:
         return 1 / (1 + numpy.exp(-X))
