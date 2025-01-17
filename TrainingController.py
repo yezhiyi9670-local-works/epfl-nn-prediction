@@ -13,9 +13,10 @@ class TrainingController():
         self.nn = nn
     def train(self, X_train, Y_train, X_eval, Y_eval):
         epoch = -1
-        base_lr = 5
+        base_lr = 10
+        batch_size = 5000
         def lr(epoch):
-            return base_lr / 2 ** (epoch / 60)  # Scheduled learning rate, decays over time
+            return base_lr / 2 ** max(0, (epoch - 0) / 60)  # Scheduled learning rate, decays over time
         
         eval_positive_rate = numpy.sum(Y_eval) / Y_eval.size
         print(f'INFO: Evaluation set positive rate is {"%.4f" % eval_positive_rate}')
@@ -40,7 +41,7 @@ class TrainingController():
                 
                 train_data = numpy.vstack([ X_train, Y_train ]).transpose()
                 numpy.random.shuffle(train_data)
-                n_batches = train_data.shape[0] // 500 + 1  # Batch size ~
+                n_batches = train_data.shape[0] // batch_size + 1  # Batch size ~
                 batches: list[numpy.ndarray] = numpy.array_split(train_data, n_batches, axis=0)
                 
                 for batch in batches:

@@ -5,13 +5,15 @@ import random
 class MyNeuralNetwork():
     def __init__(self):
         self.modules: list[nn_modules.Base] = [
-            nn_modules.BiasedLinear(69, 32),
+            nn_modules.BiasedLinear(69, 64, biased=False),
+            nn_modules.BatchNorm(64),
             nn_modules.LeakyReLU(0.01),
-            nn_modules.BiasedLinear(32, 16),
+            
+            nn_modules.BiasedLinear(64, 32, biased=False),
+            nn_modules.BatchNorm(32),
             nn_modules.LeakyReLU(0.01),
-            nn_modules.BiasedLinear(16, 8),
-            nn_modules.LeakyReLU(0.01),
-            nn_modules.BiasedLinear(8, 1),
+            
+            nn_modules.BiasedLinear(32, 1, biased=True),
             nn_modules.Sigmoid()
         ]
         self.loss_head = nn_modules.BinaryFocalLoss(0.95, 3)
@@ -42,44 +44,36 @@ class MyNeuralNetwork():
         The supplied batch is fully used in gradient descent.
         '''
         
-        trace = ''
-        
         # The forward pass
-        intermediary: list = [ None ] * (len(self.modules) + 1)  # Gradient Descent requires saving results
-        intermediary[0] = X
-        # trace += f'=== Forward {0}\n{repr(intermediary[0])}\n'
+        caches: list = [ None ] * len(self.modules)  # Gradient Descent requires saving results
+        curr_value = X
         for i in range(len(self.modules)):
-            intermediary[i + 1] = self.modules[i].forward(intermediary[i])
-            # trace += f'=== Module {i}\n{repr(self.modules[i].dump_params())}\n'
-            # trace += f'=== Forward {i + 1}\n{repr(intermediary[i + 1])}\n'
+            forward_result = self.modules[i].forward(curr_value, True)
+            curr_value = forward_result[0]
+            caches[i] = forward_result[1:]
             
         # Loss calculation
-        loss = self.loss_head.loss(intermediary[-1], Y)
-        curr_grad = self.loss_head.grad(intermediary[-1], Y)
+        loss = self.loss(curr_value, Y)
+        curr_grad = self.loss_head.grad(curr_value, Y)
         
-        # trace += f'=== Grad {len(intermediary) - 1}\n{repr(curr_grad)}\n'
-
         # Backpropagation
         for i in range(len(self.modules) - 1, -1, -1):
             module = self.modules[i]
-            next_grad = module.backward(curr_grad, intermediary[i], intermediary[i + 1])
-            module.update(curr_grad, intermediary[i], intermediary[i + 1], lr, self.regularization_factor)
-            curr_grad = next_grad
-            # trace += f'=== Grad {i}\n{repr(curr_grad)}\n'
-        
-        # open(f'trace/trace-{epoch}.txt', 'w', encoding='utf-8').write(trace)
+            backward_result = module.backward(curr_grad, caches[i])
+            curr_grad = backward_result[0]
+            module.update(backward_result[1:], lr, self.regularization_factor)
         
         return loss
             
     
     def __passthru(self, X: numpy.ndarray):
         for module in self.modules:
-            X = module.forward(X)
+            X = module.forward(X, False)[0]
         return X
     
     def eval(self, X: numpy.ndarray, Y: numpy.ndarray):
         estY = self.__passthru(X)
-        return self.loss_head.loss(estY, Y)
+        return self.loss(estY, Y)
 
     def predict(self, X: numpy.ndarray):
         '''
