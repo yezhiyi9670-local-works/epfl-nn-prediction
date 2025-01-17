@@ -5,15 +5,18 @@ import random
 class MyNeuralNetwork():
     def __init__(self):
         self.modules: list[nn_modules.Base] = [
-            nn_modules.BiasedLinear(69, 64, biased=False),
-            nn_modules.BatchNorm(64),
+            nn_modules.BiasedLinear(69, 48, biased=True),
             nn_modules.LeakyReLU(0.01),
             
-            nn_modules.BiasedLinear(64, 32, biased=False),
-            nn_modules.BatchNorm(32),
+            nn_modules.BiasedLinear(48, 24, biased=True),
             nn_modules.LeakyReLU(0.01),
             
-            nn_modules.BiasedLinear(32, 1, biased=True),
+            nn_modules.BiasedLinear(24, 7, biased=False),
+            nn_modules.BatchNorm(7),
+            nn_modules.LeakyReLU(0.01),
+            
+            nn_modules.BiasedLinear(7, 1, biased=False),
+            nn_modules.BatchNorm(1),
             nn_modules.Sigmoid()
         ]
         self.loss_head = nn_modules.BinaryFocalLoss(0.95, 3)
