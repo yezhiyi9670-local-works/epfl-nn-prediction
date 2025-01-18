@@ -21,6 +21,7 @@ What to do next:
 - Improve performence
   - Implement more optimization approaches, e.g. ~~dropout~~, ~~batch normalization~~, residual connections, **[★]** better initialization approaches, **[★]** gradient descent with momentum, ~~better loss function~~, ~~better learning rate scheduling~~. To avoid waiting time, please assess their effectiveness using your knowledge before using them. If you have other ideas, you may try them as well.
   - **[★]** Get to know what the features actually mean in the dataset and implement some problem-specific pre-processing techniques.
+  - Use a more complicated and expressive network structure.
   - Audit the code and fix potential bugs in calculations.
   - Adjust hyperparameters.
   - Adjust network structure.
