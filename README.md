@@ -19,8 +19,13 @@ What to do next:
   - ~~Automatically detect that the training has converged and stop it at an appropriate point without human intervention.~~
   - **[★]** Test the training process on other train & eval splits.
 - Improve performence
-  - Implement more optimization approaches, e.g. ~~dropout~~, ~~batch normalization~~, residual connections, **[★]** better initialization approaches, ~~better loss function~~, ~~better learning rate scheduling~~. To avoid waiting time, please assess their effectiveness using your knowledge before using them. If you have other ideas, you may try them as well.
-  - Audit the code and fix potential bugs in calculations.
+  - Implement more optimization approaches, e.g. ~~dropout~~, ~~batch normalization~~, residual connections, **[★]** better initialization approaches, **[★]** gradient descent with momentum, ~~better loss function~~, ~~better learning rate scheduling~~. To avoid waiting time, please assess their effectiveness using your knowledge before using them. If you have other ideas, you may try them as well.
   - **[★]** Get to know what the features actually mean in the dataset and implement some problem-specific pre-processing techniques.
+  - Audit the code and fix potential bugs in calculations.
   - Adjust hyperparameters.
   - Adjust network structure.
+
+Important notice:
+
+- During the actual test, the user will only specify `data_path` and not the `eval_path` during training. The training algorithm must work without a separate evaluation set.
+- It is important to also retain the stability of training.
