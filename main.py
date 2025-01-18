@@ -4,6 +4,7 @@ import argparse
 
 from MyNeuralNetwork import MyNeuralNetwork
 from TrainingController import TrainingController
+from preprocessing import preprocess_input
 
 class Your_model_name():
     def __init__(self) -> None:
@@ -95,8 +96,8 @@ if __name__ == '__main__':
     controller = TrainingController(nn)
     
     # Void the node ID column
-    training_x[4][:] = 0
-    if eval_x is not None: eval_x[4][:] = 0
+    training_x = preprocess_input(training_x)
+    if eval_x is not None: eval_x = preprocess_input(eval_x)
     
     if has_eval:
         print('Training with hot evaluation.')

@@ -5,6 +5,7 @@ import pickle
 import numpy
 
 from MyNeuralNetwork import MyNeuralNetwork
+from preprocessing import preprocess_input
 
 class Your_model_name():
     def __init__(self) -> None:
@@ -85,7 +86,7 @@ if __name__ == '__main__':
         The grade will depend on you model's f1_score
     '''
     
-    test_x[4][:] = 0
+    test_x = preprocess_input(test_x)
     
     nn = MyNeuralNetwork()
     nn.load_params(pickle.load(open(args.model_path, 'rb')))

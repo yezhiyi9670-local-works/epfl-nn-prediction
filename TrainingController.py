@@ -31,9 +31,6 @@ class ReduceLROnPlateau:
 class TrainingController():
     def __init__(self, nn: MyNeuralNetwork):
         self.nn = nn
-        self.best_eval_loss = float('inf')  # 记录最佳验证集损失
-        self.patience = 9999  # 允许的连续无提升 epoch 数
-        self.wait = 0  # 当前连续无提升 epoch 数
         self.lr_scheduler = ReduceLROnPlateau(base_lr=32, factor=0.5, patience=4, min_lr=5e-3)
     def train(self, X_train, Y_train, X_eval, Y_eval):
         epoch = -1
@@ -95,13 +92,8 @@ class TrainingController():
             if epoch > 10:
                 loss_metric = max(collective_loss, eval_loss)
                 self.lr_scheduler.step(loss_metric)
-                # Early stop
-                if loss_metric < self.best_eval_loss:
-                    self.best_eval_loss = loss_metric
-                    self.wait = 0
-                else:
-                    self.wait += 1
-                if self.wait >= self.patience or self.lr_scheduler.base_lr == self.lr_scheduler.min_lr:
+                # Stop when learning rate reaches the bottom
+                if self.lr_scheduler.base_lr == self.lr_scheduler.min_lr:
                     print(f'Automatically stopping at epoch {epoch}.')
                     break
             

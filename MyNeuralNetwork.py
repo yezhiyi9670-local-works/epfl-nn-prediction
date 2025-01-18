@@ -12,7 +12,7 @@ class MyNeuralNetwork():
             nn_modules.BiasedLinear(64, 32, biased=False),
             nn_modules.BatchNorm(32),
             nn_modules.LeakyReLU(0.01),
-            nn_modules.Dropout(p=0.1),
+            nn_modules.Dropout(p=0.2),
             
             nn_modules.BiasedLinear(32, 32, biased=False),
             nn_modules.BatchNorm(32),
@@ -21,7 +21,7 @@ class MyNeuralNetwork():
             nn_modules.BiasedLinear(32, 1, biased=False),
             nn_modules.Sigmoid()
         ]
-        self.loss_head = nn_modules.BinaryFocalLoss(0.96, 1)
+        self.loss_head = nn_modules.BinaryFocalLoss(0.95, 1)
         self.regularization_factor = 1e-5  # Adjusted: 1e-5 results in much overfitting, while 5e-5 prevents training
     
     def dump_params(self):
