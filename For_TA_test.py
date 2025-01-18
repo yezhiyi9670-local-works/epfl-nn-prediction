@@ -85,6 +85,8 @@ if __name__ == '__main__':
         The grade will depend on you model's f1_score
     '''
     
+    test_x[4][:] = 0
+    
     nn = MyNeuralNetwork()
     nn.load_params(pickle.load(open(args.model_path, 'rb')))
     pred = (nn.predict(test_x) >= 0.5) + 0
