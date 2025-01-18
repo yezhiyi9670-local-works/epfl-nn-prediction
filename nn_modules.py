@@ -178,6 +178,24 @@ class BatchNorm(Base):
     def l2normsq(self, reg_factor):
         return reg_factor * (numpy.sum(self.weight ** 2) + numpy.sum(self.bias ** 2))
 
+class Dropout(Base):
+    def __init__(self, p: float = 0.5):
+        assert 0 <= p < 1, "Dropout probability must be between 0 and 1"
+        self.p = p
+        self.mask = None
+    
+    def forward(self, X: numpy.ndarray, is_train: bool) -> list[numpy.ndarray]:
+        if is_train:
+            self.mask = (numpy.random.rand(*X.shape) >= self.p)
+            self.mask = self.mask / (1 - self.p)
+            return [X * self.mask, self.mask]
+        else:
+            return [X, numpy.ones_like(X)]
+    
+    def backward(self, ddY: numpy.ndarray, cache: list[numpy.ndarray]) -> list[numpy.ndarray]:
+        [mask] = cache
+        return [ddY * mask]
+
 # ================ Loss functions ================
 
 # [TODO] Not working!
@@ -197,6 +215,30 @@ class BatchNorm(Base):
 #         g0 = e0 / (e0 + e1) - (gtY == 0)
 #         g1 = e1 / (e0 + e1) - (gtY == 1)
 #         return numpy.vstack([g0, g1]) / gtY.shape[1]
+
+class CrossEntropyLoss(LossHead):
+    """
+    Optimized Binary Cross Entropy Loss with improved numerical stability
+    """
+    def __init__(self, pos_weight: float = 1.0):
+        self.pos_weight = pos_weight
+        self.eps = 1e-12
+        
+    def loss(self, estY: numpy.ndarray, gtY: numpy.ndarray) -> float:
+        # Clip values for numerical stability
+        estY = numpy.clip(estY, self.eps, 1.0 - self.eps)
+        # Compute weighted BCE loss
+        bce_loss = -self.pos_weight * gtY * numpy.log(estY) - \
+                    (1 - self.pos_weight) * (1 - gtY) * numpy.log(1 - estY)
+        return numpy.mean(bce_loss)
+    
+    def grad(self, estY: numpy.ndarray, gtY: numpy.ndarray) -> numpy.ndarray:
+        # Clip predictions for numerical stability
+        estY = numpy.clip(estY, self.eps, 1.0 - self.eps)
+        # Compute gradient
+        grad = (-self.pos_weight * gtY / estY + \
+                 (1 - self.pos_weight) * (1 - gtY) / (1 - estY)) / gtY.shape[1]
+        return grad
 
 class MSELoss(LossHead):
     def loss(self, estY, gtY):

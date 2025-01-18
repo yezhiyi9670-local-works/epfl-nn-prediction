@@ -9,7 +9,7 @@ import pickle
 from formula import f1_score
 
 class ReduceLROnPlateau:
-    def __init__(self, base_lr, factor=0.1, patience=5, min_lr=1e-5):
+    def __init__(self, base_lr, factor=0.1, patience=5, min_lr=1e-3):
         self.base_lr = base_lr
         self.factor = factor
         self.patience = patience
@@ -34,7 +34,7 @@ class TrainingController():
         self.best_eval_loss = float('inf')  # 记录最佳验证集损失
         self.patience = 9999  # 允许的连续无提升 epoch 数
         self.wait = 0  # 当前连续无提升 epoch 数
-        self.lr_scheduler = ReduceLROnPlateau(base_lr=50, factor=0.5, patience=5, min_lr=1e-5)
+        self.lr_scheduler = ReduceLROnPlateau(base_lr=32, factor=0.5, patience=5, min_lr=1e-5)
     def train(self, X_train, Y_train, X_eval, Y_eval):
         epoch = -1
         batch_size = 5000
@@ -52,7 +52,7 @@ class TrainingController():
         
         while True:
             epoch += 1
-            should_log = (epoch % 2 == 0)
+            should_log = (epoch % 1 == 0)
             
             collective_loss = 0
             lr = self.lr_scheduler.base_lr

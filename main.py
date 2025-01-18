@@ -95,8 +95,8 @@ if __name__ == '__main__':
     controller = TrainingController(nn)
     
     # Void the node ID column
-    training_x[4][:] = 0
-    if eval_x is not None: eval_x[4][:] = 0
+    # training_x[4][:] = 0
+    # if eval_x is not None: eval_x[4][:] = 0
     
     if has_eval:
         print('Training with hot evaluation.')
