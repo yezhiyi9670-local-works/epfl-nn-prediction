@@ -62,6 +62,28 @@ class LossHead(metaclass=ABCMeta):
         '''
         pass
 
+# ================ Gradient optimizer ================
+
+class AdamGrad():
+    moment_1: Union[None, numpy.ndarray] = None
+    moment_2: Union[None, numpy.ndarray] = None
+    def __init__(self):
+        self.timestep = 0
+        self.DECAY_1 = 0.9
+        self.DECAY_2 = 0.9
+        self.EPS = 1e-5
+    def step(self, gradient: numpy.ndarray):
+        self.timestep += 1
+        if self.moment_1 is None:
+            self.moment_1 = numpy.zeros_like(gradient)
+        if self.moment_2 is None:
+            self.moment_2 = numpy.zeros_like(gradient)
+        self.moment_1 = self.DECAY_1 * self.moment_1 + (1 - self.DECAY_1) * gradient
+        self.moment_2 = self.DECAY_2 * self.moment_2 + (1 - self.DECAY_2) * (gradient ** 2)
+        est1 = self.moment_1 / (1 - self.DECAY_1 ** self.timestep)
+        est2 = self.moment_2 / (1 - self.DECAY_2 ** self.timestep)
+        return est1 / (numpy.sqrt(est2) + self.EPS)
+
 # ================ Activation functions ================
 
 class ReLU(Base):
@@ -94,7 +116,9 @@ class Sigmoid(Base):
 class BiasedLinear(Base):
     def __init__(self, in_dims: int, out_dims: int, biased: bool = True):
         self.weight = numpy.random.normal(0, 1 / in_dims, (out_dims, in_dims))
+        self.opt_weight = AdamGrad()
         self.bias = numpy.zeros((out_dims, 1))
+        self.opt_bias = AdamGrad()
         self.biased = biased
     def dump_params(self):
         return [ self.weight, self.bias ]
@@ -112,8 +136,8 @@ class BiasedLinear(Base):
 
     def update(self, updaters, lr, reg_factor):
         [ ddB, ddW ] = updaters
-        self.bias -= self.bias * lr * 2 * reg_factor + ddB * lr
-        self.weight -= self.weight * lr * 2 * reg_factor + ddW * lr
+        self.bias -= lr * self.opt_bias.step(self.bias * 2 * reg_factor + ddB)
+        self.weight -= lr * self.opt_weight.step(self.weight * 2 * reg_factor + ddW)
     def l2normsq(self, reg_factor = 0):
         return reg_factor * (numpy.sum(self.bias ** 2) + numpy.sum(self.weight ** 2))
 
@@ -128,7 +152,9 @@ class BatchNorm(Base):
         # Output scaling params
         # self.weight = numpy.random.normal(0, 1, (dims, 1))
         self.weight = numpy.ones((dims, 1))
+        self.opt_weight = AdamGrad()
         self.bias = numpy.zeros((dims, 1))
+        self.opt_bias = AdamGrad()
         # Moving average for inference stage
         self.moving_avg = numpy.zeros((dims, 1))
         self.moving_devi = numpy.ones((dims, 1))
@@ -172,8 +198,8 @@ class BatchNorm(Base):
         
     def update(self, updaters, lr: float, reg_factor: float = 0):
         [ ddW, ddB ] = updaters
-        self.bias -= self.bias * lr * 2 * reg_factor + ddB * lr
-        self.weight -= self.weight * lr * 2 * reg_factor + ddW * lr
+        self.bias -= lr * self.opt_bias.step(self.bias * 2 * reg_factor + ddB)
+        self.weight -= lr * self.opt_weight.step(self.weight * 2 * reg_factor + ddW)
         
     def l2normsq(self, reg_factor):
         return reg_factor * (numpy.sum(self.weight ** 2) + numpy.sum(self.bias ** 2))
