@@ -19,8 +19,9 @@ What to do next:
   - ~~Automatically detect that the training has converged and stop it at an appropriate point without human intervention.~~
   - **[★]** Test the training process on other train & eval splits.
 - Improve performence
+  - **[★] May be important!** Get to know what the features actually mean in the dataset and implement some problem-specific pre-processing techniques.
+  - **[★]** (if possible) Use a loss function that can automatically deal with unbalanced samples without requiring manually-assigned weights for each label.
   - Implement more optimization approaches, e.g. ~~dropout~~, ~~batch normalization~~, residual connections, **[★]** better initialization approaches, **[★]** gradient descent with momentum, ~~better loss function~~, ~~better learning rate scheduling~~. To avoid waiting time, please assess their effectiveness using your knowledge before using them. If you have other ideas, you may try them as well.
-  - **[★]** Get to know what the features actually mean in the dataset and implement some problem-specific pre-processing techniques.
   - Use a more complicated and expressive network structure.
   - Audit the code and fix potential bugs in calculations.
   - Adjust hyperparameters.
