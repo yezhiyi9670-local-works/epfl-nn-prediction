@@ -68,8 +68,8 @@ class TrainingController():
                     if batch.shape[0] == 0:
                         continue
                     batch = batch.transpose()
-                    batch_X = batch[:69]
-                    batch_Y = batch[69:70]
+                    batch_X = batch[:75]
+                    batch_Y = batch[75:76]
                     collective_loss += batch_X.shape[1] * self.nn.train(batch_X, batch_Y, lr, epoch)
                     
                 collective_loss /= train_data.shape[0]

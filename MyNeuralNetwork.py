@@ -5,7 +5,7 @@ import random
 class MyNeuralNetwork():
     def __init__(self):
         self.modules: list[nn_modules.Base] = [
-            nn_modules.BiasedLinear(69, 64, biased=True),
+            nn_modules.BiasedLinear(75, 64, biased=True),
             nn_modules.LeakyReLU(0.01),
             nn_modules.Dropout(p=0.1),
             
