@@ -31,7 +31,7 @@ class ReduceLROnPlateau:
 class TrainingController():
     def __init__(self, nn: MyNeuralNetwork):
         self.nn = nn
-        self.lr_scheduler = ReduceLROnPlateau(base_lr=0.5, factor=0.25, patience=4, min_lr=1e-5)
+        self.lr_scheduler = ReduceLROnPlateau(base_lr=0.1, factor=0.25, patience=4, min_lr=1e-5)
     def train(self, X_train, Y_train, X_eval, Y_eval):
         epoch = -1
         batch_size = 5000
