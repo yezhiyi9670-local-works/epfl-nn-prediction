@@ -34,6 +34,7 @@ if __name__ == '__main__':
     min_score = np.inf
     max_score = -np.inf
     avg_score = 0
+    scores = []
     
     rounds = 5
     
@@ -51,5 +52,9 @@ if __name__ == '__main__':
         min_score = min(min_score, f1_score)
         max_score = max(max_score, f1_score)
         avg_score += f1_score / rounds
+        
+        scores.append(f1_score)
+        open(f'model/model-{i}.pickle', 'wb').write(open(f'model/model.pickle', 'rb').read())
     
+    print(scores)
     print(f'Finished. min: {"%.4f" % min_score}, avg: {"%.4f" % avg_score}, max: {"%.4f" % max_score}')
